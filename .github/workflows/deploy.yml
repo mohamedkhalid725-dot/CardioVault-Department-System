@@ -74,15 +74,18 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_CARDIOVAULT_AI_ENDPOINT: https://cardiovault-ai.mohamedkhalid725.workers.dev
 
-      - name: Create fresh-version entrypoint
+      - name: Create fresh-version entrypoint with all assets
         run: |
           mkdir -p dist/v12
+          cp -R dist/assets dist/v12/
+          cp -R dist/*.js dist/*.css dist/*.ico dist/*.png dist/*.svg dist/*.webp dist/*.json dist/*.txt dist/v12/ 2>/dev/null || true
           cp dist/index.html dist/v12/index.html
 
-      - name: Verify build
+      - name: Verify fresh-version assets
         run: |
-          test -f dist/index.html
           test -f dist/v12/index.html
+          test -d dist/v12/assets
+          test -n "$(find dist/v12/assets -type f -print -quit)"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
