@@ -1,4 +1,5 @@
 name: Deploy CardioVault Department System
+# Fresh source rebuild: 045cf2d PDF readability, section shapes, and PDF.js preview
 
 on:
   workflow_dispatch:
