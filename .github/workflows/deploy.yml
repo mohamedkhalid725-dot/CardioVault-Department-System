@@ -153,13 +153,27 @@ jobs:
           mkdir -p dist/v12
           cp -R dist-v12/. dist/v12/
 
+      - name: Build fresh v13 app to bypass browser-cached v12 assets
+        run: npx vite build --base=/CardioVault-Department-System/v13/ --outDir dist-v13
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_CARDIOVAULT_AI_ENDPOINT: https://cardiovault-ai.mohamedkhalid725.workers.dev
+
+      - name: Publish fresh v13 app
+        run: |
+          rm -rf dist/v13
+          mkdir -p dist/v13
+          cp -R dist-v13/. dist/v13/
+
       - name: Verify builds
         run: |
           test -f dist/index.html
           test -f dist/v12/index.html
+          test -f dist/v13/index.html
           grep -q '/CardioVault-Department-System/v12/' dist/v12/index.html
-          test -n "$(find dist/v12/assets -type f -print -quit)"
-
+          grep -q '/CardioVault-Department-System/v13/' dist/v13/index.html
+          test -n "$(find dist/v13/assets -type f -print -quit)"
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
