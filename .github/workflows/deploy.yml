@@ -241,4 +241,4 @@ jobs:
 
 # Redeploy AI Worker with verified stable fallback models
 
-# Department system rebuild marker: enforce code-before-profile setup 2026-09-22 22:03
+# Department system rebuild marker: fix first-time profile permissions 2026-09-22 22:10
