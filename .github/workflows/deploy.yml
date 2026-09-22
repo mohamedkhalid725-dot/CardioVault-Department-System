@@ -65,7 +65,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_CARDIOVAULT_AI_ENDPOINT: ${{ steps.ai_worker.outputs.deployment-url }}
+          VITE_CARDIOVAULT_AI_ENDPOINT: https://cardiovault-ai.mohamedkhalid725.workers.dev
 
       - name: Verify build
         run: test -f dist/index.html
