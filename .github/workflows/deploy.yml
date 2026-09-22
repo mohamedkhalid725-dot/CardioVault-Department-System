@@ -41,10 +41,13 @@ jobs:
         working-directory: workers/ai
         run: node --check index.js
       - name: Deploy Firestore rules
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "FIREBASE_SERVICE_ACCOUNT is not configured in this repository; skipping Firestore rules deployment."
+            exit 0
+          fi
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json"
           npx firebase-tools@latest deploy --only firestore:rules --project ccu-notebook --non-interactive --config firebase.json
