@@ -240,3 +240,5 @@ jobs:
 # Rebuild after UnitAccessGate syntax fix
 
 # Redeploy AI Worker with verified stable fallback models
+
+# Department system rebuild marker: first-login access flow 2026-09-22
