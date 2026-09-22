@@ -65,8 +65,8 @@ jobs:
           test "$post_status" = "401"
 
       - name: Replace AI Assistant with verified Worker client
-        shell: python
         run: |
+          python - <<'PY'
           from pathlib import Path
 
           path = Path("src/services/aiClinicalService.ts")
@@ -76,8 +76,6 @@ jobs:
           if start < 0:
               raise SystemExit("callAIAssistant marker not found")
           brace = source.find("{", start)
-          if brace < 0:
-              raise SystemExit("callAIAssistant opening brace not found")
           depth = 0
           end = None
           for i in range(brace, len(source)):
@@ -91,61 +89,39 @@ jobs:
           if end is None:
               raise SystemExit("callAIAssistant closing brace not found")
 
-          replacement = """export async function callAIAssistant(req: AIAssistantRequest): Promise<AIAssistantResponse> {
-  const endpoint = getAIEndpoint();
-  if (!endpoint) throw new Error("AI configuration error: CardioVault AI endpoint is empty.");
-
-  let token: string;
-  try {
-    token = await getFirebaseIdToken();
-  } catch (error) {
-    throw new Error("AI authentication error: " + (error instanceof Error ? error.message : String(error)));
-  }
-
-  let response: Response;
-  try {
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        patient: req.patient,
-        assistantTask: req.task,
-        draftType: req.draftType,
-        userPrompt: req.userPrompt,
-        imageBase64: req.imageBase64 || undefined,
-      }),
-    });
-  } catch (error) {
-    throw new Error("AI network error [" + endpoint + "]: " + (error instanceof Error ? error.message : String(error)));
-  }
-
-  let payload: any = {};
-  try {
-    payload = await response.json();
-  } catch (error) {
-    throw new Error("AI response error [" + endpoint + "]: " + (error instanceof Error ? error.message : String(error)));
-  }
-
-  if (!response.ok) {
-    throw new Error("AI server error [" + response.status + "]: " + String(payload?.error || `HTTP ${response.status}`));
-  }
-
-  const text = [
-    payload?.diagnosticAnalysis ? `Clinical synthesis:\n${payload.diagnosticAnalysis}` : "",
-    Array.isArray(payload?.differentialDiagnoses) && payload.differentialDiagnoses.length ? `Differential considerations:\n${payload.differentialDiagnoses.map((d: any) => `• ${d.diagnosis}: ${d.rationale} [${d.urgency}]`).join("\n")}` : "",
-    Array.isArray(payload?.recommendedActions) && payload.recommendedActions.length ? `Suggested clinician-review actions:\n${payload.recommendedActions.map((x: any) => `• ${x}`).join("\n")}` : "",
-    Array.isArray(payload?.safetyChecks) && payload.safetyChecks.length ? `Safety checks:\n${payload.safetyChecks.map((x: any) => `• ${x}`).join("\n")}` : "",
-    Array.isArray(payload?.missingData) && payload.missingData.length ? `Missing/uncertain data:\n${payload.missingData.map((x: any) => `• ${x}`).join("\n")}` : "",
-  ].filter(Boolean).join("\n\n");
-
-  return {
-    text: text || "No clinical synthesis returned.",
-    task: req.task,
-    draftType: req.draftType,
-    disclaimer: "AI-generated clinical assistance. Verify against the patient record, current guidelines and clinical judgment before acting.",
-    timestamp: new Date().toISOString(),
-  };
-}"""
+          replacement = (
+              'export async function callAIAssistant(req: AIAssistantRequest): Promise<AIAssistantResponse> {\n'
+              '  const endpoint = getAIEndpoint();\n'
+              '  if (!endpoint) throw new Error("AI configuration error: CardioVault AI endpoint is empty.");\n'
+              '  let token: string;\n'
+              '  try { token = await getFirebaseIdToken(); } catch (error) {\n'
+              '    throw new Error("AI authentication error: " + (error instanceof Error ? error.message : String(error)));\n'
+              '  }\n'
+              '  let response: Response;\n'
+              '  try {\n'
+              '    response = await fetch(endpoint, {\n'
+              '      method: "POST",\n'
+              '      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },\n'
+              '      body: JSON.stringify({ patient: req.patient, assistantTask: req.task, draftType: req.draftType, userPrompt: req.userPrompt, imageBase64: req.imageBase64 || undefined }),\n'
+              '    });\n'
+              '  } catch (error) {\n'
+              '    throw new Error("AI network error [" + endpoint + "]: " + (error instanceof Error ? error.message : String(error)));\n'
+              '  }\n'
+              '  let payload: any = {};\n'
+              '  try { payload = await response.json(); } catch (error) {\n'
+              '    throw new Error("AI response error [" + endpoint + "]: " + (error instanceof Error ? error.message : String(error)));\n'
+              '  }\n'
+              '  if (!response.ok) throw new Error("AI server error [" + response.status + "]: " + String(payload?.error || ("HTTP " + response.status)));\n'
+              '  const text = [\n'
+              '    payload?.diagnosticAnalysis ? "Clinical synthesis:\\n" + payload.diagnosticAnalysis : "",\n'
+              '    Array.isArray(payload?.differentialDiagnoses) && payload.differentialDiagnoses.length ? "Differential considerations:\\n" + payload.differentialDiagnoses.map((d: any) => "• " + d.diagnosis + ": " + d.rationale + " [" + d.urgency + "]").join("\\n") : "",\n'
+              '    Array.isArray(payload?.recommendedActions) && payload.recommendedActions.length ? "Suggested clinician-review actions:\\n" + payload.recommendedActions.map((x: any) => "• " + x).join("\\n") : "",\n'
+              '    Array.isArray(payload?.safetyChecks) && payload.safetyChecks.length ? "Safety checks:\\n" + payload.safetyChecks.map((x: any) => "• " + x).join("\\n") : "",\n'
+              '    Array.isArray(payload?.missingData) && payload.missingData.length ? "Missing/uncertain data:\\n" + payload.missingData.map((x: any) => "• " + x).join("\\n") : "",\n'
+              '  ].filter(Boolean).join("\\n\\n");\n'
+              '  return { text: text || "No clinical synthesis returned.", task: req.task, draftType: req.draftType, disclaimer: "AI-generated clinical assistance. Verify against the patient record, current guidelines and clinical judgment before acting.", timestamp: new Date().toISOString() };\n'
+              '}\n'
+          )
 
           updated = source[:start] + replacement + source[end:]
           if "us-central1-ccu-notebook.cloudfunctions.net/analyzeClinicalPatient" in updated:
@@ -154,6 +130,8 @@ jobs:
               raise SystemExit("Old generic AI network error is still present")
           path.write_text(updated, encoding="utf-8")
           print("Verified Worker client installed.")
+          PY
+
       - name: Build web app
         run: npm run build
         env:
