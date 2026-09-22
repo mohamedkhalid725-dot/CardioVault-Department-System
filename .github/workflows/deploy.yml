@@ -47,6 +47,19 @@ jobs:
           workingDirectory: workers/ai
           wranglerVersion: '4'
 
+      - name: Route AI Assistant through deployed Cloudflare Worker
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/services/aiClinicalService.ts')
+          s = p.read_text()
+          old = "fetch('https://us-central1-ccu-notebook.cloudfunctions.net/analyzeClinicalPatient'"
+          new = "fetch(getAIEndpoint()"
+          if old not in s:
+              raise SystemExit('Expected Firebase AI Assistant endpoint was not found in aiClinicalService.ts')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
       - name: Build web app
         run: npm run build
         env:
