@@ -47,7 +47,7 @@ jobs:
           workingDirectory: workers/ai
           wranglerVersion: '4'
 
-      - name: Verify CardioVault AI Worker
+      - name: Verify CardioVault AI Worker after CORS preflight fix
         run: |
           set -euxo pipefail
           get_status="$(curl -sS -o /tmp/worker-get-body -w '%{http_code}' https://cardiovault-ai.mohamedkhalid725.workers.dev)"
