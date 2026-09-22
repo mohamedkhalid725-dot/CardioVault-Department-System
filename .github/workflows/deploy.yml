@@ -191,16 +191,29 @@ jobs:
           rm -rf dist/v14
           mkdir -p dist/v14
           cp -R dist-v14/. dist/v14/
+      - name: Build fresh v15 app with first-login role and member management fixes
+        run: npx vite build --base=/CardioVault-Department-System/v15/ --outDir dist-v15
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_CARDIOVAULT_AI_ENDPOINT: https://cardiovault-ai.mohamedkhalid725.workers.dev
+      - name: Publish fresh v15 app
+        run: |
+          rm -rf dist/v15
+          mkdir -p dist/v15
+          cp -R dist-v15/. dist/v15/
       - name: Verify builds
         run: |
           test -f dist/index.html
           test -f dist/v12/index.html
           test -f dist/v13/index.html
           test -f dist/v14/index.html
+          test -f dist/v15/index.html
           grep -q '/CardioVault-Department-System/v12/' dist/v12/index.html
           grep -q '/CardioVault-Department-System/v13/' dist/v13/index.html
           grep -q '/CardioVault-Department-System/v14/' dist/v14/index.html
-          test -n "$(find dist/v13/assets -type f -print -quit)"
+          grep -q '/CardioVault-Department-System/v15/' dist/v15/index.html
+          test -n "$(find dist/v15/assets -type f -print -quit)"
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -219,5 +232,7 @@ jobs:
 # Refresh canonical department-system-v1 source build
 # Include latest Team Directory and Firestore-shared Tasks fixes
 # Rebuild after task cloud synchronization and shared task rules
-# Source resilient Team Directory fallback rebuild
+# Source resilient Team Directory + first-login role + complete member removal rebuild
+# Add Gemini 2.5 fallback models for temporary Gemini 3 capacity errors
 # Publish v14 to bypass any cached v13 entrypoint
+# Publish v15 for first-login clinical role and complete team member removal changes
