@@ -54,17 +54,49 @@ jobs:
           cat /tmp/worker-body
           test "$status" = "405"
 
-      - name: Route AI Assistant through deployed Cloudflare Worker
+      - name: Route AI Assistant through Cloudflare Worker and add definitive diagnostics
         run: |
           python - <<'PY'
           from pathlib import Path
           p = Path('src/services/aiClinicalService.ts')
           s = p.read_text()
+
           old = "fetch('https://us-central1-ccu-notebook.cloudfunctions.net/analyzeClinicalPatient'"
           new = "fetch(getAIEndpoint()"
           if old not in s:
-              raise SystemExit('Expected Firebase AI Assistant endpoint was not found in aiClinicalService.ts')
-          p.write_text(s.replace(old, new, 1))
+              raise SystemExit('Expected Firebase AI Assistant endpoint was not found')
+          s = s.replace(old, new, 1)
+
+          old = """  const token = await getFirebaseIdToken();
+  let response: Response;
+  try {
+    response = await fetch(getAIEndpoint(), {"""
+          new = """  let token: string;
+  try {
+    token = await getFirebaseIdToken();
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error('AI authentication error: ' + detail);
+  }
+  let response: Response;
+  try {
+    response = await fetch(getAIEndpoint(), {"""
+          if old not in s:
+              raise SystemExit('Expected AI Assistant token/fetch block was not found')
+          s = s.replace(old, new, 1)
+
+          old = """  } catch {
+    throw new Error('Could not reach the CardioVault AI server. Verify network connection and try again.');
+  }"""
+          new = """  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error('AI network error [' + getAIEndpoint() + ']: ' + detail);
+  }"""
+          if old not in s:
+              raise SystemExit('Expected AI Assistant network catch was not found')
+          s = s.replace(old, new, 1)
+
+          p.write_text(s)
           PY
 
       - name: Build web app
@@ -74,7 +106,7 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_CARDIOVAULT_AI_ENDPOINT: https://cardiovault-ai.mohamedkhalid725.workers.dev
 
-      - name: Build isolated v12 app with absolute Pages base
+      - name: Build isolated v12 app with absolute GitHub Pages base
         run: npx vite build --base=/CardioVault-Department-System/v12/ --outDir dist-v12
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
