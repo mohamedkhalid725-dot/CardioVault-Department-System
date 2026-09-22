@@ -74,8 +74,15 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_CARDIOVAULT_AI_ENDPOINT: https://cardiovault-ai.mohamedkhalid725.workers.dev
 
+      - name: Create fresh-version entrypoint
+        run: |
+          mkdir -p dist/v12
+          cp dist/index.html dist/v12/index.html
+
       - name: Verify build
-        run: test -f dist/index.html
+        run: |
+          test -f dist/index.html
+          test -f dist/v12/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
