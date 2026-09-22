@@ -1,4 +1,4 @@
-# PDF export compatibility rebuild
+# Fix jsPDF addImage argument order rebuild
 name: Deploy CardioVault Department System
 # Fresh source rebuild: 045cf2d PDF readability, section shapes, and PDF.js preview
 
