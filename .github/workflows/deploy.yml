@@ -19,6 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Source is intentionally pulled from the canonical department-system-v1 branch.
       - name: Checkout department-system-v1 source
         uses: actions/checkout@v4
         with:
