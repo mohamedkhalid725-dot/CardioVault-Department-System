@@ -47,7 +47,26 @@ jobs:
           workingDirectory: workers/ai
           wranglerVersion: '4'
 
-      - name: Route AI Assistant through deployed Cloudflare Worker
+      - name: Verify deployed AI Worker network and CORS
+        env:
+          AI_ENDPOINT: https://cardiovault-ai.mohamedkhalid725.workers.dev
+        run: |
+          set -euo pipefail
+          echo "Testing OPTIONS: $AI_ENDPOINT"
+          curl -sS -D /tmp/headers -o /tmp/body -X OPTIONS "$AI_ENDPOINT"
+          cat /tmp/headers
+          grep -qi '^access-control-allow-origin: \*' /tmp/headers
+          echo "Testing unauthenticated POST: expected HTTP 401"
+          status="$(curl -sS -o /tmp/post-body -w '%{http_code}' -X POST "$AI_ENDPOINT" \
+            -H 'Origin: https://mohamedkhalid725-dot.github.io' \
+            -H 'Content-Type: application/json' \
+            --data '{"patient":{}}')"
+          echo "POST status: $status"
+          cat /tmp/post-body
+          test "$status" = "401"
+          echo "AI Worker network/CORS endpoint is reachable and enforcing Firebase authentication."
+
+      - name: Route AI Assistant through Cloudflare Worker and expose runtime error
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -57,7 +76,18 @@ jobs:
           new = "fetch(getAIEndpoint()"
           if old not in s:
               raise SystemExit('Expected Firebase AI Assistant endpoint was not found in aiClinicalService.ts')
-          p.write_text(s.replace(old, new, 1))
+          s = s.replace(old, new, 1)
+          old_catch = """  } catch {
+    throw new Error('Could not reach the CardioVault AI server. Verify network connection and try again.');
+  }"""
+          new_catch = """  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error('AI network error [' + getAIEndpoint() + ']: ' + detail);
+  }"""
+          if old_catch not in s:
+              raise SystemExit('Expected AI Assistant network catch block was not found')
+          s = s.replace(old_catch, new_catch, 1)
+          p.write_text(s)
           PY
 
       - name: Build web app
