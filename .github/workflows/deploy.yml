@@ -238,3 +238,5 @@ jobs:
 # Publish v15 for first-login clinical role and complete team member removal changes
 
 # Rebuild after UnitAccessGate syntax fix
+
+# Redeploy AI Worker with verified stable fallback models
