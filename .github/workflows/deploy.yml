@@ -236,3 +236,4 @@ jobs:
 # Add Gemini 2.5 fallback models for temporary Gemini 3 capacity errors
 # Publish v14 to bypass any cached v13 entrypoint
 # Publish v15 for first-login clinical role and complete team member removal changes
+\n# Rebuild after UnitAccessGate syntax fix\n
