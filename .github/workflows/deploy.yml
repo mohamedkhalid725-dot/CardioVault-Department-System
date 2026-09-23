@@ -241,4 +241,4 @@ jobs:
 
 # Redeploy AI Worker with verified stable fallback models
 
-# Department system rebuild marker: fix first-time profile permissions 2026-09-22 22:10
+# Department system rebuild marker: close login bypass + harden self-role + membership revocation 2026-09-23
