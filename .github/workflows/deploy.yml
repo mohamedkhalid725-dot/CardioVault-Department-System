@@ -40,17 +40,23 @@ jobs:
       - name: Validate CardioVault AI Worker
         working-directory: workers/ai
         run: node --check index.js
-      - name: Deploy Firestore rules
-        continue-on-error: true
+      - name: Deploy Firestore rules (required)
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
+          set -euo pipefail
+
           if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
-            echo "FIREBASE_SERVICE_ACCOUNT is not configured in this repository; skipping Firestore rules deployment."
-            exit 0
+            echo "::error::FIREBASE_SERVICE_ACCOUNT is not configured. Firestore rules deployment is required and the build must not continue."
+            exit 1
           fi
+
+          test -f firestore.rules
+          test -f firebase.json
+
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json"
+
           npx firebase-tools@latest deploy --only firestore:rules --project ccu-notebook --non-interactive --config firebase.json
 
       - name: Deploy CardioVault AI Worker (diagnostic Gemini errors)
