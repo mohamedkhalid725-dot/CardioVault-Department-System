@@ -262,3 +262,4 @@ jobs:
 # Canonical source sync: 2026-09-23 access/sync/runtime fixes
 
 # Rebuild for Patient File, Quick Add, Orders, PDF, Alerts and device notifications 2026-09-23
+# Rebuild trigger: include latest department-system-v1 clinical workflow updates 2026-09-23
