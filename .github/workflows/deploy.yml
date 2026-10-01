@@ -269,3 +269,5 @@ jobs:
 
 # Rebuild after legacy team profile self-role permission fix 2026-09-23
 # Rebuild after master legacy bed and patient migration (2026-09-23)
+
+# Sync current CardioVault phase1-clinical-snapshot to the canonical Department-System GitHub Pages URL.
