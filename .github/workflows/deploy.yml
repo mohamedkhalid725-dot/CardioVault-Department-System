@@ -271,3 +271,5 @@ jobs:
 # Rebuild after master legacy bed and patient migration (2026-09-23)
 
 # Sync current CardioVault phase1-clinical-snapshot to the canonical Department-System GitHub Pages URL.
+
+# Rebuild canonical GitHub Pages app from CardioVault main after Vercel removal and AI/auth restore 2026-10-03
