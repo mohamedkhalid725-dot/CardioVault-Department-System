@@ -273,3 +273,5 @@ jobs:
 # Sync current CardioVault phase1-clinical-snapshot to the canonical Department-System GitHub Pages URL.
 
 # Rebuild canonical GitHub Pages app from CardioVault main after Vercel removal and AI/auth restore 2026-10-03
+
+# Final source sync: authenticated AI lab OCR + medical voice + Firebase-only auth 2026-10-03
